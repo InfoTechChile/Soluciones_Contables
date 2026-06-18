@@ -1,0 +1,507 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Vianney_conta</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600&display=swap');
+
+/* --- ESTILOS DE LOGIN Y CARGA --- */
+#loginOverlay, #loadingScreen {
+    position: fixed;
+    inset: 0;
+    background-color: #050b14;
+    z-index: 5000;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    font-family: 'Inter', sans-serif;
+}
+#loadingScreen { display: none; }
+
+.login-card {
+    background: rgba(10, 20, 40, 0.6);
+    backdrop-filter: blur(15px);
+    padding: 40px;
+    border-radius: 24px;
+    box-shadow: 0 20px 40px rgba(0, 229, 255, 0.15);
+    width: 90%;
+    max-width: 380px;
+    text-align: center;
+    border: 1px solid rgba(0, 229, 255, 0.3);
+}
+.login-card img, #loadingScreen img { width: 250px; margin-bottom: 25px; filter: drop-shadow(0 0 10px rgba(0, 229, 255, 0.3)); }
+
+.input-group { margin-bottom: 20px; text-align: left; }
+.input-group label { display: block; font-weight: 600; margin-bottom: 8px; color: #00e5ff; letter-spacing: 0.5px; }
+.input-group input {
+    width: 100%;
+    padding: 12px 16px;
+    border-radius: 12px;
+    border: 1px solid rgba(0, 229, 255, 0.3);
+    background: rgba(255, 255, 255, 0.05);
+    font-size: 1rem;
+    box-sizing: border-box;
+    outline: none;
+    backdrop-filter: blur(5px);
+    color: #ffffff;
+    transition: all 0.3s ease;
+}
+.input-group input:focus {
+    border-color: #00e5ff;
+    box-shadow: 0 0 10px rgba(0, 229, 255, 0.2);
+    background: rgba(255, 255, 255, 0.1);
+}
+
+.loader-bar {
+    width: 250px;
+    height: 8px;
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: 10px;
+    overflow: hidden;
+    margin-top: 20px;
+    border: 1px solid rgba(0, 229, 255, 0.2);
+}
+.loader-progress {
+    width: 0%;
+    height: 100%;
+    background: linear-gradient(90deg, #0055ff, #00e5ff);
+    transition: width 5s linear;
+    box-shadow: 0 0 10px rgba(0, 229, 255, 0.8);
+}
+
+/* --- ESTILOS DEL CUERPO (TU DISEÑO) --- */
+body {
+  font-family: 'Inter', sans-serif;
+  margin: 0;
+  padding: 40px 20px;
+  background-color: #050b14; 
+  background-image: 
+    url('https://ia803100.us.archive.org/32/items/chat-gpt-image-22-feb-2026-12-52-12-12-p.m./ChatGPT%20Image%2022%20feb%202026%2C%2012_52_12%20p.m..png'),
+    radial-gradient(at 0% 0%, rgba(0, 85, 255, 0.4) 0px, transparent 50%),
+    radial-gradient(at 100% 0%, rgba(0, 229, 255, 0.3) 0px, transparent 50%),
+    radial-gradient(at 100% 100%, rgba(112, 0, 255, 0.2) 0px, transparent 50%);
+  background-position: right center; 
+  background-size: 500px, cover; 
+  background-repeat: no-repeat;
+  background-attachment: fixed;
+  color: #ffffff;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: flex-start;
+  min-height: 100vh;
+}
+
+#mainContent { 
+    display: none; 
+    width: 100%; 
+    max-width: 1200px; 
+    position: relative; 
+    z-index: 2; 
+    flex-direction: column; 
+    align-items: center; 
+}
+
+h1 { display: flex; align-items: center; justify-content: center; margin-bottom: 20px; filter: drop-shadow(0 0 15px rgba(0, 229, 255, 0.4)); }
+h2 { font-size: 2.2em; font-weight: 600; margin-bottom: 30px; text-align: center; color: #00e5ff; position: relative; z-index: 2; text-transform: uppercase; letter-spacing: 2px; text-shadow: 0 0 10px rgba(0, 229, 255, 0.3); }
+h3 { color: #00e5ff; text-transform: uppercase; letter-spacing: 1px; }
+
+/* BOTONES PRINCIPALES */
+.btn-container { display: flex; flex-wrap: wrap; gap: 20px; justify-content: center; position: relative; z-index: 2; }
+.btn {
+  padding: 18px 40px; font-size: 1.1em; font-weight: 600; color: #fff; border: 1px solid rgba(255, 255, 255, 0.2); border-radius: 12px; cursor: pointer; background-size: 200% 100%; transition: all 0.4s cubic-bezier(0.23, 1, 0.32, 1); box-shadow: 0 4px 15px rgba(0,0,0,0.3); text-align: center; position: relative; overflow: hidden; text-transform: uppercase; letter-spacing: 1px; backdrop-filter: blur(5px);
+}
+.btn:hover { transform: translateY(-5px) scale(1.02); box-shadow: 0 10px 25px rgba(0, 229, 255, 0.3); background-position: right center; border-color: rgba(0, 229, 255, 0.8); }
+.btn::before { content: ""; position: absolute; top: 0; left: -100%; width: 100%; height: 100%; background: linear-gradient(120deg, transparent, rgba(255,255,255,0.4), transparent); transition: all 0.6s; }
+.btn:hover::before { left: 100%; }
+.btn-blue { background-image: linear-gradient(135deg,#0055ff,#00c8ff); }
+.btn-red { background-image: linear-gradient(135deg,#e74c3c,#ff7675); }
+.btn-green { background-image: linear-gradient(135deg,#00b09b,#96c93d); }
+.btn-orange { background-image: linear-gradient(135deg,#ff8008,#ffc837); }
+.btn-purple { background-image: linear-gradient(135deg,#8e2de2,#4a00e0); }
+
+/* CONTENEDORES */
+.projects-box { background: rgba(10, 20, 40, 0.65); backdrop-filter: blur(15px); border: 1px solid rgba(0, 229, 255, 0.25); border-radius: 20px; padding: 30px; margin: 40px auto; max-width: 900px; box-shadow: 0 10px 30px rgba(0,0,0,0.5); text-align: center; position: relative; z-index: 2; color: #fff; }
+.bank-grid { display: flex; flex-wrap: wrap; gap: 20px; justify-content: center; padding: 10px; }
+.bank-card { background: rgba(255, 255, 255, 0.9); border-radius: 12px; padding: 10px; width: 180px; height: 90px; display: flex; align-items: center; justify-content: center; cursor: pointer; transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275); box-shadow: 0 10px 20px rgba(0,0,0,0.3); border: 1px solid transparent; }
+.bank-card:hover { transform: translateY(-5px); box-shadow: 0 15px 25px rgba(0, 229, 255, 0.4); border-color: #00e5ff; background: #ffffff; }
+.bank-card img { max-width: 90%; max-height: 100%; object-fit: contain; }
+
+/* MODALES */
+.calc-modal, .calendar-modal, .notes-modal { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.7); backdrop-filter: blur(5px); justify-content: center; align-items: center; z-index: 3000; }
+.calc-container { background: rgba(10, 20, 40, 0.95); border: 1px solid rgba(0, 229, 255, 0.4); color: white; padding: 25px; border-radius: 20px; width: 320px; box-shadow: 0 10px 40px rgba(0, 229, 255, 0.2); }
+.calc-display { background: rgba(0, 0, 0, 0.5); border: 1px solid rgba(0, 229, 255, 0.2); color: #00e5ff; font-size: 2.2rem; padding: 15px; border-radius: 12px; margin-bottom: 15px; text-align: right; font-family: monospace; text-shadow: 0 0 5px rgba(0, 229, 255, 0.5); }
+.calc-history { background: transparent; font-size: 1rem; color: #a0aec0; text-align: right; margin-bottom: 10px; min-height: 20px; max-height: 80px; overflow-y: auto; }
+.calc-buttons { display: grid; grid-template-columns: repeat(4,1fr); gap: 10px; }
+.calc-buttons button { padding: 15px; font-size: 1.3rem; border: 1px solid rgba(255,255,255,0.1); border-radius: 12px; background: rgba(255,255,255,0.05); color: white; cursor: pointer; transition: all 0.2s; }
+.calc-buttons button:hover { background: rgba(0, 229, 255, 0.2); border-color: rgba(0, 229, 255, 0.5); }
+.calc-buttons .equal { background: linear-gradient(135deg, #0055ff, #00e5ff); border: none; font-weight: bold; }
+.calc-buttons .clear { background: linear-gradient(135deg, #e74c3c, #ff7675); border: none; font-weight: bold; }
+
+/* ICONOS FLOTANTES */
+.floating-btn { 
+    position: fixed; 
+    width: 60px; 
+    height: 60px; 
+    border-radius: 50%; 
+    display: flex; 
+    align-items: center; 
+    justify-content: center; 
+    box-shadow: 0 4px 15px rgba(0,0,0,0.5); 
+    cursor: pointer; 
+    z-index: 2500; 
+    animation: bounce 2s infinite; 
+    border: 1px solid rgba(255,255,255,0.2);
+    transition: all 0.3s ease;
+}
+.floating-btn:hover { transform: scale(1.1); filter: brightness(1.2); }
+.whatsapp-btn { right: 20px; background-color: #25D366; bottom: 20px; }
+.gmail-btn { right: 100px; background-color: #D44638; bottom: 20px; }
+.calc-btn { right: 180px; background-image: linear-gradient(135deg,#0055ff,#00c8ff); bottom: 20px; }
+.calendar-btn { right: 260px; background-image: linear-gradient(135deg,#8e2de2,#4a00e0); bottom: 20px; }
+.notes-btn { right: 340px; background-image: linear-gradient(135deg,#ff8008,#ffc837); bottom: 20px; }
+.iva-btn { left: 20px; background-image: linear-gradient(135deg,#00b09b,#00e5ff); bottom: 20px; flex-direction: column; gap: 2px; }
+
+@keyframes bounce { 0%,100%{transform:translateY(0);} 50%{transform:translateY(-8px);} }
+
+/* CALENDARIO Y NOTAS */
+.calendar-content { background: rgba(10, 20, 40, 0.95); border: 1px solid rgba(0, 229, 255, 0.4); border-radius: 20px; padding: 25px; width: 90%; max-width: 600px; color: #fff; box-shadow: 0 10px 40px rgba(0, 229, 255, 0.2); }
+.calendar-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 8px; margin-top: 15px; }
+.calendar-date { background: rgba(255, 255, 255, 0.05); border: 1px solid rgba(255,255,255,0.1); border-radius: 10px; min-height: 80px; display: flex; flex-direction: column; padding: 8px; cursor: pointer; transition: background 0.3s; }
+.calendar-date:hover { background: rgba(0, 229, 255, 0.2); border-color: rgba(0, 229, 255, 0.5); }
+.calendar-weekday { text-align: center; font-weight: bold; color: #00e5ff; margin-bottom: 10px; }
+
+.notes-content { background: rgba(10, 20, 40, 0.95); border: 1px solid rgba(0, 229, 255, 0.4); border-radius: 20px; padding: 25px; width: 90%; max-width: 520px; color: white; box-shadow: 0 10px 40px rgba(0, 229, 255, 0.2); }
+.note-card { padding:15px; border-radius:12px; box-shadow: 0 4px 12px rgba(0,0,0,0.3); cursor:pointer; margin-bottom: 10px; color: #1e293b; font-weight: 600; border: 1px solid rgba(255,255,255,0.4); transition: transform 0.2s; }
+.note-card:hover { transform: scale(1.02); }
+.color-btn{ width:34px; height:34px; border-radius:50%; border:2px solid rgba(255,255,255,0.5); cursor:pointer; transition: transform 0.2s; }
+.color-btn:hover { transform: scale(1.1); border-color: white; }
+#noteInput { background: rgba(255,255,255,0.05); color: white; border: 1px solid rgba(0, 229, 255, 0.3); outline: none; transition: border-color 0.3s; }
+#noteInput:focus { border-color: #00e5ff; }
+</style>
+</head>
+<body id="pageBody">
+
+<div id="loginOverlay">
+  <div class="login-card">
+    <img src="https://ia601701.us.archive.org/14/items/whats-app-image-2025-08-24-at-17.32.37/VIANNEY%20CONTA.png" alt="Logo">
+    <div class="input-group">
+      <label>Usuario</label>
+      <input type="text" id="userInput" placeholder="Ingresa tu usuario" onkeydown="handleLoginKey(event)">
+    </div>
+    <div class="input-group">
+      <label>Contraseña</label>
+      <input type="password" id="passInput" placeholder="Clave de acceso" onkeydown="handleLoginKey(event)">
+    </div>
+    <button onclick="iniciarCarga()" style="width:100%; padding:15px; background:linear-gradient(135deg, #0055ff, #00e5ff); color:white; border:none; border-radius:12px; cursor:pointer; font-weight:bold; font-size:1.1em; box-shadow: 0 4px 15px rgba(0, 229, 255, 0.4); text-transform: uppercase; letter-spacing: 1px;">Ingresar</button>
+    <p id="errorMsg" style="color: #ff4757; display: none; margin-top: 15px; font-weight: 600; text-shadow: 0 0 5px rgba(255,71,87,0.5);">⚠️ Datos incorrectos</p>
+  </div>
+</div>
+
+<div id="loadingScreen">
+  <img src="https://ia601701.us.archive.org/14/items/whats-app-image-2025-08-24-at-17.32.37/VIANNEY%20CONTA.png" alt="Logo">
+  <h3>Autenticando panel...</h3>
+  <div class="loader-bar">
+    <div class="loader-progress" id="pBar"></div>
+  </div>
+</div>
+
+<div id="mainContent">
+  <h1><img src="https://ia601701.us.archive.org/14/items/whats-app-image-2025-08-24-at-17.32.37/VIANNEY%20CONTA.png" alt="Logo" style="width: 300px;"></h1>
+  <h2>Páginas principales</h2>
+
+  <div class="btn-container">
+    <button class="btn btn-blue" onclick="window.open('https://autentica.tgr.cl/oauth2/authorize-front?client_id=10m9frd2n5porvv6nuv8314nas&redirect_uri=https:%2F%2Fwww.tesoreria.cl%2FLoginPortalCognito%2F&response_type=code&providers=ClaveTesoreria,ClaveTributaria,ClaveUnica&sesion=true','_blank')">TGR</button>
+    <button class="btn btn-red" onclick="window.open('https://www.previred.com/wPortal/login/login.jsp','_blank')">Previred</button>
+    <button class="btn btn-green" onclick="window.open('https://midt.dirtrab.cl/welcome','_blank')">DT</button>
+    <button class="btn btn-orange" onclick="window.open('https://zeusr.sii.cl/AUT2000/InicioAutenticacion/IngresoRutClave.html?https://misiir.sii.cl/cgi_misii/siihome.cgi/','_blank')">SII</button>
+    <button class="btn btn-red" onclick="window.open('https://www.registrodeempresasysociedades.cl/','_blank')">Empresa en un día</button>
+    <button class="btn btn-blue" onclick="window.open('https://www.mercadopublico.cl/Home/','_blank')">Mercado Publico</button>
+    <button class="btn btn-purple" onclick="window.open('https://mascontable.maserp.cl/','_blank')">Alternativa Contable</button>
+    <button class="btn btn-green" onclick="window.open('https://tramites.dirtrab.cl/webitel2013/MoraPrev/GetMoraPrev.aspx/login','_blank')">Mora Previsional</button>
+    <button class="btn btn-orange" onclick="window.open('https://seremienlinea.minsal.cl/asdigital/','_blank')">SEREMI EN LINEA</button>
+  </div>
+
+  <div class="projects-box">
+    <h3>Plataforma de Proyectos</h3>
+    <div class="btn-container">
+      <button class="btn btn-blue" onclick="window.open('https://fondos.gob.cl/','_blank')">Fondo.Gob</button>
+      <button class="btn btn-green" onclick="window.open('https://www.corfo.gob.cl/sites/cpp/','_blank')">Corfo.Gob</button>
+      <button class="btn btn-orange" onclick="window.open('https://startupchile.org/','_blank')">Startupchile</button>
+      <button class="btn btn-red" onclick="window.open('https://www.sercotec.cl/','_blank')">Sercotec</button>
+      <button class="btn btn-purple" onclick="window.open('https://miportalemprendimiento.gob.cl/login','_blank')">Portal Emprendedor</button>
+    </div>
+  </div>
+
+  <div class="projects-box">
+      <h3>Bancos y Pagos</h3>
+      <div class="bank-grid">
+          <div class="bank-card" onclick="window.open('https://app.santander.cl/','_blank')"><img src="https://logos-marcas.com/wp-content/uploads/2020/11/Banco-Santander-Logotipo-1989-1999.jpg" alt="S"></div>
+          <div class="bank-card" onclick="window.open('https://www.bancoestado.cl','_blank')"><img src="https://th.bing.com/th/id/R.3a2798681a586f8b452ede1e6a853f18?rik=870LZs%2bUoujXZg&riu=http%3a%2f%2fwww.elmercuriomediacenter.cl%2fwp-content%2fuploads%2f2-4-1.jpg&ehk=cE6P2sZEdcK4vpRTqlFWDJc%2b1Qhr94hPTOrmKDhWhOU%3d&risl=&pid=ImgRaw&r=0" alt="BE"></div>
+          <div class="bank-card" onclick="window.open('https://ww3.bancochile.cl','_blank')"><img src="https://tse3.mm.bing.net/th/id/OIP.YTd9mLLN8677mwCVShs-ZwHaE8?rs=1&pid=ImgDetMain" alt="BC"></div>
+          <div class="bank-card" onclick="window.open('https://www.itau.cl','_blank')"><img src="https://logos-world.net/wp-content/uploads/2024/03/Banco-Itau-Logo-New.png" alt="I"></div>
+          <div class="bank-card" onclick="window.open('https://www.bci.cl/personas','_blank')"><img src="https://cdn3.bci.cl/uploads/2ab33fe4-2e4f-4124-b0ca-0a7d00b897ff/original/bci_logo.png" alt="B"></div>
+          <div class="bank-card" onclick="window.open('https://www.scotiabank.cl','_blank')"><img src="https://i2.wp.com/puntacana-bavaro.com/wp-content/uploads/2017/05/scotiabank_logo.jpg" alt="SC"></div>
+      </div>
+  </div>
+
+  <div class="calc-modal" id="calcModal">
+    <div class="calc-container">
+      <div id="calc-history" class="calc-history"></div>
+      <div id="calc-display" class="calc-display">0</div>
+      <div class="calc-buttons">
+        <button class="clear" onclick="clearCalc()">C</button>
+        <button onclick="appendCalc('/')">÷</button>
+        <button onclick="appendCalc('*')">×</button>
+        <button onclick="appendCalc('-')">−</button>
+        <button onclick="appendCalc('7')">7</button>
+        <button onclick="appendCalc('8')">8</button>
+        <button onclick="appendCalc('9')">9</button>
+        <button onclick="appendCalc('+')">+</button>
+        <button onclick="appendCalc('4')">4</button>
+        <button onclick="appendCalc('5')">5</button>
+        <button onclick="appendCalc('6')">6</button>
+        <button onclick="appendCalc('.')">.</button>
+        <button onclick="appendCalc('1')">1</button>
+        <button onclick="appendCalc('2')">2</button>
+        <button onclick="appendCalc('3')">3</button>
+        <button class="equal" onclick="calculate()">=</button>
+        <button onclick="appendCalc('0')" style="grid-column: span 2;">0</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="calendar-modal" id="calendarModal">
+    <div class="calendar-content">
+      <div class="calendar-header" style="display:flex; justify-content:space-between; align-items:center; margin-bottom:15px;">
+        <div><button onclick="prevMonth()" style="background:rgba(255,255,255,0.1); color:#fff; border:1px solid rgba(0,229,255,0.4); padding:8px 12px; border-radius:8px; cursor:pointer;">◀</button>
+        <button onclick="nextMonth()" style="background:rgba(255,255,255,0.1); color:#fff; border:1px solid rgba(0,229,255,0.4); padding:8px 12px; border-radius:8px; cursor:pointer;">▶</button></div>
+        <div id="monthYear" style="font-size: 1.2rem; font-weight: bold; color: #00e5ff; text-transform: capitalize;"></div>
+        <button onclick="closeCalendar()" style="background:linear-gradient(135deg, #e74c3c, #ff7675); color:white; border:none; padding:8px 15px; border-radius:8px; cursor:pointer; font-weight:bold;">✖</button>
+      </div>
+      <div class="calendar-grid" id="calendarGrid"></div>
+    </div>
+  </div>
+
+  <div class="notes-modal" id="notesModal">
+    <div class="notes-content">
+      <div style="display:flex; justify-content:space-between; margin-bottom:15px;">
+        <h3 style="margin: 0;">Notas rápidas</h3>
+        <button onclick="closeNotes()" style="background:linear-gradient(135deg, #e74c3c, #ff7675); color:white; border:none; border-radius:8px; padding:8px 15px; cursor:pointer; font-weight:bold;">✖</button>
+      </div>
+      <div id="notesContainer" style="max-height:300px; overflow-y:auto; margin-bottom:15px; padding-right: 5px;"></div>
+      <div style="display:flex; flex-direction:column; gap:12px;">
+        <textarea id="noteInput" style="width:100%; padding:12px; border-radius:12px; resize: vertical; min-height: 60px;" placeholder="Escribe tu nota aquí..."></textarea>
+        <div style="display:flex; gap:8px; align-items:center; justify-content: space-between;">
+            <div style="display:flex; gap:8px;">
+              <button class="color-btn" id="c-cyan" onclick="setNoteColor('#bffffa')"></button>
+              <button class="color-btn" id="c-pink" onclick="setNoteColor('#ffcce6')"></button>
+              <button class="color-btn" id="c-green" onclick="setNoteColor('#ccffcc')"></button>
+              <button class="color-btn" id="c-yellow" onclick="setNoteColor('#fffcb3')"></button>
+              <button class="color-btn" id="c-purple" onclick="setNoteColor('#e6ccff')"></button>
+            </div>
+            <button onclick="addNote()" style="background:linear-gradient(135deg, #0055ff, #00e5ff); color:white; border:none; padding:10px 20px; border-radius:10px; cursor:pointer; font-weight:bold; box-shadow: 0 4px 10px rgba(0, 229, 255, 0.3);">Agregar</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="floating-btn whatsapp-btn" onclick="window.open('https://web.whatsapp.com/','_blank')"><img src="https://upload.wikimedia.org/wikipedia/commons/6/6b/WhatsApp.svg" alt="WA" width="32"></div>
+  <div class="floating-btn gmail-btn" onclick="window.open('https://mail.google.com/','_blank')"><img src="https://upload.wikimedia.org/wikipedia/commons/4/4e/Gmail_Icon.png" alt="GM" width="30"></div>
+  <div class="floating-btn calc-btn" onclick="toggleCalc()"><svg fill="white" width="28" viewBox="0 0 24 24"><path d="M6 2h12a2 2 0 0 1 2 2v16a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2zm0 2v16h12V4H6zm2 2h2v2H8V6zm4 0h2v2h-2V6zm-4 4h2v2H8v-2zm4 0h2v2h-2v-2zm-4 4h2v2H8v-2zm4 0h2v2h-2v-2z"/></svg></div>
+  <div class="floating-btn calendar-btn" onclick="toggleCalendar()"><svg fill="white" width="28" viewBox="0 0 24 24"><path d="M3 4h18v2H3V4zm0 4h18v14H3V8zm2 2v10h14V10H5z"/></svg></div>
+  <div class="floating-btn notes-btn" onclick="toggleNotes()"><svg fill="white" width="28" viewBox="0 0 24 24"><path d="M19 3H5c-1.1 0-2 .9-2 2v14l4-4h12c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2z"/></svg></div>
+  
+  <div class="floating-btn iva-btn" onclick="window.open('https://fran5142.github.io/VIANNEYCONTA_CALCU_IVA/','_blank')" title="Calculadora IVA">
+    <svg fill="white" width="24" viewBox="0 0 24 24"><path d="M6 2h12a2 2 0 0 1 2 2v16a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2zm0 2v16h12V4H6zm2 2h2v2H8V6zm4 0h2v2h-2V6zm-4 4h2v2H8v-2zm4 0h2v2h-2v-2zm-4 4h2v2H8v-2zm4 0h2v2h-2v-2z"/></svg>
+    <span style="color: white; font-size: 11px; font-weight: bold; font-family: 'Inter', sans-serif;">IVA</span>
+  </div>
+
+</div>
+
+<script>
+/* LÓGICA DE LOGIN CON MÚLTIPLES USUARIOS */
+function iniciarCarga() {
+    const user = document.getElementById('userInput').value;
+    const pass = document.getElementById('passInput').value;
+
+    const usuarios = {
+        "Invitado": "123",
+        "1": "1",
+        "2": "2"
+    };
+
+    if (usuarios[user] && usuarios[user] === pass) {
+        document.getElementById('loginOverlay').style.display = 'none';
+        document.getElementById('loadingScreen').style.display = 'flex';
+        setTimeout(() => { document.getElementById('pBar').style.width = '100%'; }, 30);
+        setTimeout(() => {
+            document.getElementById('loadingScreen').style.display = 'none';
+            document.getElementById('mainContent').style.display = 'flex';
+        }, 3000);
+    } else {
+        document.getElementById('errorMsg').style.display = 'block';
+    }
+}
+function handleLoginKey(e) { if (e.key === "Enter") iniciarCarga(); }
+
+/* LÓGICA DE CALCULADORA (CON SOPORTE TECLADO) */
+let calcExpression="";
+function toggleCalc(){
+  const modal = document.getElementById("calcModal");
+  modal.style.display = (modal.style.display==="flex" || modal.style.display==="block") ? "none" : "flex";
+}
+
+function appendCalc(value){
+  if(calcExpression==="0") calcExpression="";
+  calcExpression += value;
+  document.getElementById("calc-display").textContent = calcExpression;
+}
+
+function clearCalc(){
+  calcExpression="";
+  document.getElementById("calc-display").textContent="0";
+  document.getElementById("calc-history").textContent="";
+}
+
+function calculate(){
+  try{
+    if(calcExpression === "") return;
+    let result = eval(calcExpression);
+    result = Math.round(result * 100) / 100;
+    document.getElementById("calc-history").innerHTML += calcExpression + " = " + result + "<br>";
+    const hist = document.getElementById("calc-history");
+    hist.scrollTop = hist.scrollHeight;
+    calcExpression = result.toString();
+    document.getElementById("calc-display").textContent = calcExpression;
+  } catch {
+    document.getElementById("calc-display").textContent = "Error";
+    calcExpression = "";
+  }
+}
+
+// ESCUCHA DEL TECLADO PARA LA CALCULADORA
+document.addEventListener('keydown', (e) => {
+  const modal = document.getElementById("calcModal");
+  if (modal.style.display === "flex") {
+    const key = e.key;
+    if (!isNaN(key)) appendCalc(key); // Si es número
+    if (['+', '-', '*', '/','.'].includes(key)) appendCalc(key);
+    if (key === "Enter") { e.preventDefault(); calculate(); }
+    if (key === "Escape") toggleCalc();
+    if (key === "Backspace" || key === "Delete") { e.preventDefault(); clearCalc(); }
+  }
+});
+
+/* LÓGICA DE CALENDARIO */
+let currentDate = new Date();
+let calendarNotes = JSON.parse(localStorage.getItem("calendarNotes") || "{}");
+const monthNames = ["Enero","Febrero","Marzo","Abril","Mayo","Junio","Julio","Agosto","Septiembre","Octubre","Noviembre","Diciembre"];
+
+function renderCalendar(){
+  const monthYear = document.getElementById('monthYear');
+  const calendarGrid = document.getElementById('calendarGrid');
+  calendarGrid.innerHTML = '';
+  const year = currentDate.getFullYear();
+  const month = currentDate.getMonth();
+  monthYear.textContent = monthNames[month] + " " + year;
+  const firstDay = new Date(year, month, 1).getDay();
+  const totalDays = new Date(year, month + 1, 0).getDate();
+  const weekdays = ["Dom","Lun","Mar","Mié","Jue","Vie","Sáb"];
+  weekdays.forEach(d=>{
+    const wd = document.createElement('div');
+    wd.className = 'calendar-weekday'; wd.textContent = d;
+    calendarGrid.appendChild(wd);
+  });
+  for(let i=0;i<firstDay;i++) calendarGrid.appendChild(document.createElement('div'));
+  for(let d=1; d<=totalDays; d++){
+    const cell = document.createElement('div');
+    cell.className = 'calendar-date';
+    const dayNum = document.createElement('div'); 
+    dayNum.textContent = d;
+    dayNum.style.fontWeight = 'bold';
+    dayNum.style.color = '#fff';
+    cell.appendChild(dayNum);
+    const key = `${year}-${month+1}-${d}`;
+    if(calendarNotes[key]){
+      const noteDiv = document.createElement('div');
+      noteDiv.className = 'note-text'; 
+      noteDiv.textContent = calendarNotes[key];
+      noteDiv.style.fontSize = '0.8rem';
+      noteDiv.style.color = '#00e5ff';
+      noteDiv.style.marginTop = '4px';
+      cell.appendChild(noteDiv);
+    }
+    cell.onclick = ()=>{
+      const nota = prompt('Nota para '+d+' de '+monthNames[month]+' de '+year, calendarNotes[key]||'');
+      if(nota === null) return;
+      if(nota.trim()==='') delete calendarNotes[key];
+      else calendarNotes[key] = nota;
+      localStorage.setItem('calendarNotes', JSON.stringify(calendarNotes));
+      renderCalendar();
+    };
+    calendarGrid.appendChild(cell);
+  }
+}
+function toggleCalendar(){
+  const modal = document.getElementById('calendarModal');
+  if(modal.style.display === 'flex') closeCalendar();
+  else { modal.style.display = 'flex'; renderCalendar(); }
+}
+function closeCalendar(){ document.getElementById('calendarModal').style.display = 'none'; }
+function nextMonth(){ currentDate.setMonth(currentDate.getMonth()+1); renderCalendar(); }
+function prevMonth(){ currentDate.setMonth(currentDate.getMonth()-1); renderCalendar(); }
+
+/* LÓGICA DE NOTAS */
+let customNotes = JSON.parse(localStorage.getItem('customNotes') || "[]");
+let selectedColor = '#bffffa'; // Cyan claro por defecto
+function setNoteColor(color){ selectedColor = color; }
+function toggleNotes(){
+  const modal = document.getElementById('notesModal');
+  if(modal.style.display === 'flex') closeNotes();
+  else { modal.style.display = 'flex'; renderNotes(); }
+}
+function closeNotes(){ document.getElementById('notesModal').style.display = 'none'; }
+function addNote(){
+  const txt = document.getElementById('noteInput').value.trim();
+  if(!txt) return;
+  customNotes.push({ text: txt, color: selectedColor });
+  localStorage.setItem('customNotes', JSON.stringify(customNotes));
+  document.getElementById('noteInput').value = '';
+  renderNotes();
+}
+function renderNotes(){
+  const container = document.getElementById('notesContainer');
+  container.innerHTML = '';
+  customNotes.forEach((n, i)=>{
+    const card = document.createElement('div');
+    card.className = 'note-card'; card.style.background = n.color; card.textContent = n.text;
+    card.onclick = ()=>{ if(confirm('¿Eliminar esta nota?')){ customNotes.splice(i,1); localStorage.setItem('customNotes', JSON.stringify(customNotes)); renderNotes(); } };
+    container.appendChild(card);
+  });
+}
+
+(function init(){
+  // Colores pastel para las notas para que contrasten bien y se lean
+  document.getElementById('c-cyan').style.background = "#bffffa";
+  document.getElementById('c-pink').style.background = "#ffcce6";
+  document.getElementById('c-green').style.background = "#ccffcc";
+  document.getElementById('c-yellow').style.background = "#fffcb3";
+  document.getElementById('c-purple').style.background = "#e6ccff";
+  renderNotes();
+})();
+
+window.onclick = function(event) {
+  const calc = document.getElementById('calcModal');
+  const calen = document.getElementById('calendarModal');
+  const notes = document.getElementById('notesModal');
+  if (event.target == calc) calc.style.display = "none";
+  if (event.target == calen) calen.style.display = "none";
+  if (event.target == notes) notes.style.display = "none";
+}
+</script>
+</body>
+</html>
